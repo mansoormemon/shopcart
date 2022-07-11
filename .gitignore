@@ -1,0 +1,8 @@
+# Ignore python cache files.
+**/__pycache__
+
+# Ignore virtual environment config files.
+**/venv
+
+# Ignore IDE config files. 
+**/.idea

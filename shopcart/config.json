@@ -1,0 +1,14 @@
+{
+  "window": {
+    "title": "Shopping Portal",
+    "min_width": 1240,
+    "min_height": 720
+  },
+  "admin": {
+    "password": "admin"
+  },
+  "stylesheet" : {
+    "path": "res.stylesheets",
+    "file": "style.qss"
+  }
+}
