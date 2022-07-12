@@ -1,3 +1,11 @@
-#Shop {
-    background-image: url('resources:/images/background.png');
+.ContainerWithBackground QLabel {
+    background: none;
+}
+
+#LoginPage {
+    background-image: url('resources:/images/login_page_background.png');
+}
+
+#SignupPage {
+    background-image: url('resources:/images/signup_page_background.png');
 }

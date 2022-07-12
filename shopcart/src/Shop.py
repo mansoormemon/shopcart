@@ -6,20 +6,15 @@ import importlib.resources
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtWidgets import (
     QMainWindow,
-    QScrollArea,
-    QWidget,
-    QGridLayout,
-    QLineEdit,
-    QVBoxLayout,
     QLabel,
     QSizePolicy,
-    QTabWidget,
     QSpacerItem,
-    QGroupBox,
-    QStackedWidget
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget
 )
 
-from shopcart.utils import PyUI
+from shopcart.src.Pages import LoginPage, SignupPage
 
 
 class Shop(QMainWindow):
@@ -33,7 +28,12 @@ class Shop(QMainWindow):
         central_wgt.setObjectName('Shop')
         self.setCentralWidget(central_wgt)
 
-        self.__create_page()
+        self.login_page = None
+        self.signup_page = None
+
+        self.__create_login_page()
+        self.__create_signup_page()
+        self.__bind_login_and_signup_page()
 
     @staticmethod
     def __get_configurations():
@@ -60,75 +60,68 @@ class Shop(QMainWindow):
             stylesheet = stylesheet_file.read()
         self.setStyleSheet(stylesheet)
 
-    def __create_page(self):
-        main_wgt = QGroupBox()
-        main_wgt.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+    def __create_login_page(self):
+        wgt = QWidget()
+        wgt.setObjectName('LoginPage')
+        wgt.setProperty('class', 'ContainerWithBackground')
 
-        main_wgt.setStyleSheet(
+        copyright = QLabel(
             '''
-            QGroupBox {
-                border-color: transparent;
-                margin: 96px 312px;
-                padding: 72px 96px;
-            }
-            
-            QGroupBox QLabel {
-                background: none;
-            }
-            
-            QLineEdit, QComboBox, QCheckBox {
-                margin-bottom: 4px;
-            }
+            <p style='text-align: center;'>
+                <small>© ShopCart, 2022</small>
+            </p>
             '''
         )
 
-        lyt = QGridLayout()
-        lyt.setAlignment(Qt.AlignmentFlag.AlignTop)
-        main_wgt.setLayout(lyt)
+        vspacer_t = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        vspacer_b = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        heading = QLabel('Welcome to Shopping Portal')
-        heading.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        heading.setStyleSheet('color: #3882b7; font-size: 28px; font-weight: bold; margin-bottom: 8px;')
+        lyt = QVBoxLayout()
 
-        sub_heading = QLabel('Log In to Continue')
-        sub_heading.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        sub_heading.setStyleSheet('color: #579bcb; font-size: 18px;')
+        lyt.addItem(vspacer_t)
+        self.login_page = LoginPage()
+        lyt.addWidget(self.login_page)
+        lyt.addItem(vspacer_b)
 
-        umode_lbl = QLabel('User Mode:')
-        self.lg_umode_cb = PyUI.ComboBox()
-        self.lg_umode_cb.addItems(['Customer', 'Administrator'])
-        umode_lbl.setBuddy(self.lg_umode_cb)
+        lyt.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        wgt.setLayout(lyt)
+        lyt.addWidget(copyright)
 
-        uname_lbl = QLabel('Username:')
-        self.lg_uname_edt = QLineEdit()
-        uname_lbl.setBuddy(self.lg_uname_edt)
+        self.centralWidget().addWidget(wgt)
 
-        password_lbl = QLabel('Password:')
-        self.lg_password_edt = QLineEdit()
-        self.lg_password_edt.setEchoMode(QLineEdit.EchoMode.Password)
-        password_lbl.setBuddy(self.lg_password_edt)
+    def __create_signup_page(self):
+        wgt = QWidget()
+        wgt.setObjectName('SignupPage')
+        wgt.setProperty('class', 'ContainerWithBackground')
 
-        show_pass_chk_box = PyUI.CheckBox('Show password')
+        copyright = QLabel(
+            '''
+            <p style='text-align: center;'>
+                <small>© ShopCart, 2022</small>
+            </p>
+            '''
+        )
 
-        self.lg_submit_btn = PyUI.PrimaryButton('Log In')
+        vspacer_t = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        vspacer_b = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        sign_up_btn = PyUI.PushButton('Create a new account instead?')
-        sign_up_btn.setStyleSheet('color: #3882b7;')
+        lyt = QVBoxLayout()
 
-        lyt.addWidget(heading)
-        lyt.addWidget(sub_heading)
+        lyt.addItem(vspacer_t)
+        self.signup_page = SignupPage()
+        lyt.addWidget(self.signup_page)
+        lyt.addItem(vspacer_b)
+        lyt.addWidget(copyright)
 
-        lyt.addWidget(umode_lbl)
-        lyt.addWidget(self.lg_umode_cb)
+        lyt.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        wgt.setLayout(lyt)
 
-        lyt.addWidget(uname_lbl)
-        lyt.addWidget(self.lg_uname_edt)
+        self.centralWidget().addWidget(wgt)
 
-        lyt.addWidget(password_lbl)
-        lyt.addWidget(self.lg_password_edt)
-        lyt.addWidget(show_pass_chk_box)
-
-        lyt.addWidget(self.lg_submit_btn)
-        lyt.addWidget(sign_up_btn)
-
-        self.centralWidget().addWidget(main_wgt)
+    def __bind_login_and_signup_page(self):
+        self.login_page.create_acnt_btn.clicked.connect(
+            lambda: (self.centralWidget().setCurrentIndex(self.signup_page.unique_page_ID), self.login_page.reset())
+        )
+        self.signup_page.already_have_an_acnt_btn.clicked.connect(
+            lambda: (self.centralWidget().setCurrentIndex(self.login_page.unique_page_ID), self.signup_page.reset())
+        )
