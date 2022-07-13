@@ -49,7 +49,6 @@ class Shop(QMainWindow):
         configurations = Shop.__get_configurations()
         self.setWindowTitle(configurations['window']['title'])
         self.setMinimumSize(configurations['window']['min_width'], configurations['window']['min_height'])
-        self.showMaximized()
 
     def __load_custom_stylesheet(self):
         base_package_name = __package__.split(".")[0]

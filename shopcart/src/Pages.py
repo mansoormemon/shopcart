@@ -80,7 +80,7 @@ class LoginPage(StackPage):
 
         self.show_password_chkb.toggled.connect(self.__toggle_show_password)
 
-        submit_btn.clicked.connect(self.__verify_credentials)
+        submit_btn.clicked.connect(self.__process_form)
 
     def __toggle_show_password(self, checked):
         if checked:
@@ -88,7 +88,7 @@ class LoginPage(StackPage):
         else:
             self.password_edt.setEchoMode(QLineEdit.EchoMode.Password)
 
-    def __verify_credentials(self):
+    def __process_form(self):
         user_mode = self.umode_cmb.currentText()
         username = self.uname_edt.text()
         password = self.password_edt.text()
@@ -172,7 +172,7 @@ class SignupPage(StackPage):
 
         self.show_password_chkb.toggled.connect(self.__toggle_show_password)
 
-        self.submit_btn.clicked.connect(self.__verify_credentials)
+        self.submit_btn.clicked.connect(self.__process_form)
 
     def __toggle_show_password(self, checked):
         if checked:
@@ -180,7 +180,7 @@ class SignupPage(StackPage):
         else:
             self.password_edt.setEchoMode(QLineEdit.EchoMode.Password)
 
-    def __verify_credentials(self):
+    def __process_form(self):
         username = self.uname_edt.text()
         name = self.name_edt.text()
         address = self.address_edt.text()
