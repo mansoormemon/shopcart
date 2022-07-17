@@ -1,8 +1,13 @@
+import csv
+import os
+from pathlib import Path
+
 from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QWidget
+    QWidget,
+    QMessageBox
 )
 
 from shopcart.src.Constants import *
@@ -19,8 +24,16 @@ class StackPage(QWidget):
 
 
 class LoginPage(StackPage):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, csv_file_path, *args, **kwargs):
         super().__init__(Page.LoginPage.value, *args, **kwargs)
+
+        target_file = Path(csv_file_path)
+        target_file.parent.mkdir(exist_ok=True, parents=True)
+        if not target_file.exists():
+            with open(csv_file_path, 'w') as _:
+                pass
+
+        self.__csv_file_path = csv_file_path
 
         # Add widgets.
 
@@ -101,8 +114,16 @@ class LoginPage(StackPage):
 
 
 class SignupPage(StackPage):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, csv_file_path, *args, **kwargs):
         super().__init__(Page.SignupPage.value, *args, **kwargs)
+
+        target_file = Path(csv_file_path)
+        target_file.parent.mkdir(exist_ok=True, parents=True)
+        if not target_file.exists():
+            with open(csv_file_path, 'w') as _:
+                pass
+
+        self.__csv_file_path = csv_file_path
 
         # Add widgets.
 
@@ -186,6 +207,25 @@ class SignupPage(StackPage):
         address = self.address_edt.text()
         contact = self.contact_edt.text()
         password = self.password_edt.text()
+
+        user_exists = False
+        with open(self.__csv_file_path, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            for row in csv_reader:
+                if row[0] == username:
+                    user_exists = True
+
+        if not user_exists:
+            with open(self.__csv_file_path, 'a') as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=';')
+                csv_writer.writerow([username, name, address, contact, password])
+                print('New user added!')
+                self.reset()
+        else:
+            error_msg_box = QMessageBox()
+            error_msg_box.setText('Username taken!')
+            error_msg_box.setWindowTitle('Error')
+            error_msg_box.exec()
 
     def reset(self):
         self.uname_edt.clear()

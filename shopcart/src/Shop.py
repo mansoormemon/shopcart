@@ -21,6 +21,8 @@ class Shop(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.__project_root = Path(__file__).parent.parent
+
         self.__load_configurations()
         self.__load_custom_stylesheet()
 
@@ -78,7 +80,7 @@ class Shop(QMainWindow):
         lyt = QVBoxLayout()
 
         lyt.addItem(vspacer_t)
-        self.login_page = LoginPage()
+        self.login_page = LoginPage(f'{self.__project_root}/res/records/user.csv')
         lyt.addWidget(self.login_page)
         lyt.addItem(vspacer_b)
 
@@ -107,7 +109,7 @@ class Shop(QMainWindow):
         lyt = QVBoxLayout()
 
         lyt.addItem(vspacer_t)
-        self.signup_page = SignupPage()
+        self.signup_page = SignupPage(f'{self.__project_root}/res/records/user.csv')
         lyt.addWidget(self.signup_page)
         lyt.addItem(vspacer_b)
         lyt.addWidget(copyright)
