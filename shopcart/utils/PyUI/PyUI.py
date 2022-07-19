@@ -1,9 +1,7 @@
-import os
-import importlib.resources
+from pathlib import Path
 
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtWidgets import (
-    QWidgetAction,
     QApplication,
     QCheckBox,
     QComboBox,
@@ -25,10 +23,10 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        pkg_root = os.path.dirname(os.path.abspath(__file__))
+        pkg_root = Path(__file__).parent
         QDir.addSearchPath('resources', f'{pkg_root}/res')
 
-        with importlib.resources.open_text(f'{__package__}.res.stylesheets', "default.qss") as stylesheet_file:
+        with open(f'{pkg_root}/res/stylesheets/default.qss') as stylesheet_file:
             stylesheet = stylesheet_file.read()
 
         self.setStyleSheet(stylesheet)

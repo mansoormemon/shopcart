@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 import importlib.resources
 
@@ -18,10 +17,10 @@ from shopcart.src.Pages import LoginPage, SignupPage
 
 
 class Shop(QMainWindow):
+    __project_root = Path(__file__).parent.parent
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.__project_root = Path(__file__).parent.parent
 
         self.__load_configurations()
         self.__load_custom_stylesheet()
@@ -39,25 +38,19 @@ class Shop(QMainWindow):
 
     @staticmethod
     def __get_configurations():
-        base_package_name = __package__.split(".")[0]
-        with importlib.resources.open_text(base_package_name, 'config.json') as config_file:
+        with open(f'{Shop.__project_root}/config.json') as config_file:
             configurations = json.load(config_file)
         return configurations
 
     def __load_configurations(self):
-        pkg_root = Path(os.path.dirname(__file__)).parent.absolute()
-        QDir.addSearchPath('resources', f'{pkg_root}/res')
+        QDir.addSearchPath('resources', f'{Shop.__project_root}/res')
 
         configurations = Shop.__get_configurations()
         self.setWindowTitle(configurations['window']['title'])
         self.setMinimumSize(configurations['window']['min_width'], configurations['window']['min_height'])
 
     def __load_custom_stylesheet(self):
-        base_package_name = __package__.split(".")[0]
-        configurations = Shop.__get_configurations()
-
-        with importlib.resources.open_text(f'{base_package_name}.{configurations["stylesheet"]["path"]}',
-                                           configurations["stylesheet"]["file"]) as stylesheet_file:
+        with open(f'{Shop.__project_root}/res/stylesheets/style.qss') as stylesheet_file:
             stylesheet = stylesheet_file.read()
         self.setStyleSheet(stylesheet)
 
@@ -80,7 +73,7 @@ class Shop(QMainWindow):
         lyt = QVBoxLayout()
 
         lyt.addItem(vspacer_t)
-        self.login_page = LoginPage(f'{self.__project_root}/res/records/user.csv')
+        self.login_page = LoginPage(f'{Shop.__project_root}/res/records/user.csv')
         lyt.addWidget(self.login_page)
         lyt.addItem(vspacer_b)
 
@@ -109,7 +102,7 @@ class Shop(QMainWindow):
         lyt = QVBoxLayout()
 
         lyt.addItem(vspacer_t)
-        self.signup_page = SignupPage(f'{self.__project_root}/res/records/user.csv')
+        self.signup_page = SignupPage(f'{Shop.__project_root}/res/records/user.csv')
         lyt.addWidget(self.signup_page)
         lyt.addItem(vspacer_b)
         lyt.addWidget(copyright)

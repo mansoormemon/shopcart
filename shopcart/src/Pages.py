@@ -219,7 +219,6 @@ class SignupPage(StackPage):
             with open(self.__csv_file_path, 'a') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=';')
                 csv_writer.writerow([username, name, address, contact, password])
-                print('New user added!')
                 self.reset()
         else:
             error_msg_box = QMessageBox()
