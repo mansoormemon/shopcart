@@ -3,6 +3,7 @@ import sys
 from shopcart.utils.PyUI import *
 
 from shopcart.src.Shop import Shop
+from shopcart.src.Pages import AdminPanel
 
 if __name__ == '__main__':
     app = PyUI.Application(sys.argv)

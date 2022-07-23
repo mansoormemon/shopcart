@@ -57,7 +57,8 @@ class Inventory:
         with open(self.__csv_file_path) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';')
             for row in csv_reader:
-                self.add_item(*row)
+                if row:
+                    self.add_item(*row)
 
     def save_to_disk(self):
         with open(self.__csv_file_path, 'w') as csv_file:

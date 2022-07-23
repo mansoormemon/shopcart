@@ -1,5 +1,4 @@
 import csv
-import os
 from pathlib import Path
 
 from PyQt6.QtWidgets import (
@@ -7,7 +6,11 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QWidget,
-    QMessageBox
+    QMessageBox,
+    QTableWidget,
+    QSizePolicy,
+    QTreeView,
+    QSpacerItem
 )
 
 from shopcart.src.Constants import *
@@ -105,6 +108,22 @@ class LoginPage(StackPage):
         user_mode = self.umode_cmb.currentText()
         username = self.uname_edt.text()
         password = self.password_edt.text()
+
+        if user_mode == 'Customer':
+            user_exists = False
+            with open(self.__csv_file_path, 'r') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=';')
+                for row in csv_reader:
+                    if row[0] == username:
+                        user_exists = True
+        else:
+            if username == 'admin' and password == 'admin':
+                pass
+            else:
+                error_msg_box = QMessageBox()
+                error_msg_box.setText('Invalid credentials!')
+                error_msg_box.setWindowTitle('Error')
+                error_msg_box.exec()
 
     def reset(self):
         self.umode_cmb.setCurrentIndex(0)
@@ -233,3 +252,34 @@ class SignupPage(StackPage):
         self.contact_edt.clear()
         self.password_edt.clear()
         self.show_password_chkb.setChecked(False)
+
+
+class AdminPanel(StackPage):
+    def __init__(self, *args, **kwargs):
+        super().__init__(Page.AdminPanel, *args, **kwargs)
+
+        # Add widgets.
+
+        lyt = QGridLayout()
+
+        heading = QLabel(
+            '''
+            <h1 style='color: #388f83; font-size: 28px; font-weight: bold; margin-bottom: 8px; text-align:center;'>
+                Admin Panel
+            </h1>
+            '''
+        )
+
+        table_view = QTableWidget()
+        table_view.setRowCount(32)
+        table_view.setColumnCount(32)
+
+        update_btn = PyUI.PrimaryButton('Update')
+        cancel_btn = PyUI.ErrorButton('Cancel')
+
+        lyt.addWidget(heading, 0, 0, 1, 2)
+        lyt.addWidget(table_view, 1, 0, 1, 2)
+        lyt.addWidget(cancel_btn, 2, 0)
+        lyt.addWidget(update_btn, 2, 1)
+
+        self.setLayout(lyt)

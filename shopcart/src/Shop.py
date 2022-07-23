@@ -1,6 +1,4 @@
 import json
-from pathlib import Path
-import importlib.resources
 
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtWidgets import (
@@ -13,7 +11,9 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 
-from shopcart.src.Pages import LoginPage, SignupPage
+from shopcart.src.Pages import LoginPage, SignupPage, AdminPanel
+from shopcart.src.Inventory import *
+from shopcart.src.Users import *
 
 
 class Shop(QMainWindow):
@@ -31,6 +31,10 @@ class Shop(QMainWindow):
 
         self.login_page = None
         self.signup_page = None
+        self.user = None
+
+        self.__inventory = Inventory(f'{Shop.__project_root}/res/records/inventory.csv')
+        self.__inventory.load_from_disk()
 
         self.__create_login_page()
         self.__create_signup_page()

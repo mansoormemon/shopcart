@@ -4,9 +4,10 @@ MAX_WIDTH = 512
 
 
 class Page(enum.Enum):
-    __order__ = 'LoginPage SignupPage'
+    __order__ = 'LoginPage SignupPage AdminPanel'
     LoginPage = 0
     SignupPage = 1
+    AdminPanel = 2
 
 
 class UserMode(enum.Enum):
