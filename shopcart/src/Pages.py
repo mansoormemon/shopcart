@@ -115,12 +115,20 @@ class LoginPage(StackPage):
         password = self.password_edt.text()
 
         if user_mode == 'Customer':
-            user_exists = False
+            credentials = None
             with open(self.__csv_file_path, 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=';')
                 for row in csv_reader:
-                    if row[0] == username:
-                        user_exists = True
+                    if row[0] == username and row[4] == password:
+                        credentials = row
+                        break
+            if credentials is not None:
+                print('Success')
+            else:
+                error_msg_box = QMessageBox()
+                error_msg_box.setText('Invalid credentials!')
+                error_msg_box.setWindowTitle('Error')
+                error_msg_box.exec()
         else:
             if username == 'admin' and password == 'admin':
                 self.reset()
@@ -331,3 +339,23 @@ class AdminPanel(StackPage):
             stock.append(item)
 
         self.inventory.update(stock)
+
+
+class ShoppingPage(StackPage):
+    def __init__(self, *args, **kwargs):
+        super().__init__(Page.ShoppingPage.value, *args, **kwargs)
+
+        # Add widgets.
+        self.parent_stack = None
+        self.login_page = None
+        self.inventory = None
+
+        lyt = QGridLayout()
+
+        heading = QLabel(
+            '''
+            <h1 style='color: #388f83; font-size: 28px; font-weight: bold; margin-bottom: 8px; text-align:center;'>
+                Admin Panel
+            </h1>
+            '''
+        )

@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 
-from shopcart.src.Pages import LoginPage, SignupPage, AdminPanel
+from shopcart.src.Pages import LoginPage, SignupPage, AdminPanel, ShoppingPage
 from shopcart.src.Inventory import *
 from shopcart.src.Users import *
 
@@ -137,3 +137,13 @@ class Shop(QMainWindow):
         self.login_page.admin_panel.inventory = self.__inventory
 
         self.centralWidget().addWidget(self.login_page.admin_panel)
+
+    def __create_shopping_page(self):
+        self.login_page.shopping_page = ShoppingPage()
+        self.login_page.shopping_page.setObjectName('AdminPanel')
+
+        self.login_page.shopping_page.login_page = self.login_page
+        self.login_page.shopping_page.parent_stack = self.centralWidget()
+        self.login_page.shopping_page.inventory = self.__inventory
+
+        self.centralWidget().addWidget(self.login_page.shopping_page)
