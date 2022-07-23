@@ -40,6 +40,8 @@ class Shop(QMainWindow):
         self.__create_signup_page()
         self.__bind_login_and_signup_page()
 
+        self.__create_admin_panel()
+
     @staticmethod
     def __get_configurations():
         with open(f'{Shop.__project_root}/config.json') as config_file:
@@ -85,6 +87,8 @@ class Shop(QMainWindow):
         wgt.setLayout(lyt)
         lyt.addWidget(copyright)
 
+        self.login_page.parent_stack = self.centralWidget()
+
         self.centralWidget().addWidget(wgt)
 
     def __create_signup_page(self):
@@ -123,3 +127,13 @@ class Shop(QMainWindow):
         self.signup_page.already_have_an_acnt_btn.clicked.connect(
             lambda: (self.centralWidget().setCurrentIndex(self.login_page.unique_page_ID), self.signup_page.reset())
         )
+
+    def __create_admin_panel(self):
+        self.login_page.admin_panel = AdminPanel()
+        self.login_page.admin_panel.setObjectName('AdminPanel')
+
+        self.login_page.admin_panel.login_page = self.login_page
+        self.login_page.admin_panel.parent_stack = self.centralWidget()
+        self.login_page.admin_panel.inventory = self.__inventory
+
+        self.centralWidget().addWidget(self.login_page.admin_panel)

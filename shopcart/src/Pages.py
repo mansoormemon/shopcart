@@ -10,11 +10,12 @@ from PyQt6.QtWidgets import (
     QTableWidget,
     QSizePolicy,
     QTreeView,
-    QSpacerItem
+    QSpacerItem, QTableWidgetItem
 )
 
 from shopcart.src.Constants import *
 from shopcart.utils import PyUI
+from shopcart.src.Inventory import *
 
 
 class StackPage(QWidget):
@@ -23,12 +24,12 @@ class StackPage(QWidget):
 
         self.unique_page_ID = unique_page_ID
 
-        self.setMaximumWidth(MAX_WIDTH)
-
 
 class LoginPage(StackPage):
     def __init__(self, csv_file_path, *args, **kwargs):
         super().__init__(Page.LoginPage.value, *args, **kwargs)
+
+        self.setMaximumWidth(MAX_WIDTH)
 
         target_file = Path(csv_file_path)
         target_file.parent.mkdir(exist_ok=True, parents=True)
@@ -37,6 +38,10 @@ class LoginPage(StackPage):
                 pass
 
         self.__csv_file_path = csv_file_path
+
+        self.parent_stack = None
+        self.admin_panel = None
+        self.shopping_page = None
 
         # Add widgets.
 
@@ -118,7 +123,9 @@ class LoginPage(StackPage):
                         user_exists = True
         else:
             if username == 'admin' and password == 'admin':
-                pass
+                self.reset()
+                self.admin_panel.update_display()
+                self.parent_stack.setCurrentIndex(self.admin_panel.unique_page_ID)
             else:
                 error_msg_box = QMessageBox()
                 error_msg_box.setText('Invalid credentials!')
@@ -135,6 +142,8 @@ class LoginPage(StackPage):
 class SignupPage(StackPage):
     def __init__(self, csv_file_path, *args, **kwargs):
         super().__init__(Page.SignupPage.value, *args, **kwargs)
+
+        self.setMaximumWidth(MAX_WIDTH)
 
         target_file = Path(csv_file_path)
         target_file.parent.mkdir(exist_ok=True, parents=True)
@@ -238,6 +247,10 @@ class SignupPage(StackPage):
             with open(self.__csv_file_path, 'a') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=';')
                 csv_writer.writerow([username, name, address, contact, password])
+                error_msg_box = QMessageBox()
+                error_msg_box.setText('User created!')
+                error_msg_box.setWindowTitle('Success')
+                error_msg_box.exec()
                 self.reset()
         else:
             error_msg_box = QMessageBox()
@@ -256,9 +269,12 @@ class SignupPage(StackPage):
 
 class AdminPanel(StackPage):
     def __init__(self, *args, **kwargs):
-        super().__init__(Page.AdminPanel, *args, **kwargs)
+        super().__init__(Page.AdminPanel.value, *args, **kwargs)
 
         # Add widgets.
+        self.parent_stack = None
+        self.login_page = None
+        self.inventory = None
 
         lyt = QGridLayout()
 
@@ -270,16 +286,48 @@ class AdminPanel(StackPage):
             '''
         )
 
-        table_view = QTableWidget()
-        table_view.setRowCount(32)
-        table_view.setColumnCount(32)
+        self.table_wgt = QTableWidget()
+        self.table_wgt.setRowCount(32)
+        self.table_wgt.setColumnCount(32)
 
         update_btn = PyUI.PrimaryButton('Update')
-        cancel_btn = PyUI.ErrorButton('Cancel')
+        log_out_btn = PyUI.SecondaryButton('Log Out')
+
+        update_btn.clicked.connect(self.__update_inventory)
+        log_out_btn.clicked.connect(self.__logout)
 
         lyt.addWidget(heading, 0, 0, 1, 2)
-        lyt.addWidget(table_view, 1, 0, 1, 2)
-        lyt.addWidget(cancel_btn, 2, 0)
+        lyt.addWidget(self.table_wgt, 1, 0, 1, 2)
+        lyt.addWidget(log_out_btn, 2, 0)
         lyt.addWidget(update_btn, 2, 1)
 
         self.setLayout(lyt)
+
+    def __logout(self):
+        self.parent_stack.setCurrentIndex(self.login_page.unique_page_ID)
+        self.inventory.save_to_disk()
+
+    def update_display(self):
+        i = 0
+        for item in self.inventory:
+            self.table_wgt.setItem(i, 0, QTableWidgetItem(str(item.unique_id)))
+            self.table_wgt.setItem(i, 1, QTableWidgetItem(str(item.name)))
+            self.table_wgt.setItem(i, 2, QTableWidgetItem(str(item.price)))
+            i += 1
+
+    def __update_inventory(self):
+        def is_empty(cell):
+            return cell is None or not cell.text()
+
+        stock = []
+
+        for i in range(self.table_wgt.rowCount()):
+            cell1 = self.table_wgt.item(i, 0)
+            cell2 = self.table_wgt.item(i, 1)
+            cell3 = self.table_wgt.item(i, 2)
+            if is_empty(cell1) or is_empty(cell2) or is_empty(cell3):
+                break
+            item = Item(cell1.text(), cell2.text(), cell3.text())
+            stock.append(item)
+
+        self.inventory.update(stock)

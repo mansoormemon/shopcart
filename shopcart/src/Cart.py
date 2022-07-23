@@ -26,6 +26,9 @@ class Cart:
     def __init__(self):
         self.__orders = []
 
+    def get_all(self):
+        return self.__orders
+
     def get_order(self, order_ID):
         for order in self.__orders:
             if order.get_ID() == order_ID:

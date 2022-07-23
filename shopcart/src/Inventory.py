@@ -20,6 +20,9 @@ class Inventory:
         self.__csv_file_path = csv_file_path
         self.__stock = []
 
+    def __len__(self):
+        return len(self.__stock)
+
     def __iter__(self):
         self.counter = -1
         return self
@@ -39,8 +42,8 @@ class Inventory:
             if item.unique_id == target_id:
                 del item
 
-    def update_item(self, target_id):
-        pass
+    def update(self, stock):
+        self.__stock = stock
 
     def has_item(self, target_id):
         for item in self.__stock:

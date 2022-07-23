@@ -39,6 +39,9 @@ class Customer(User):
     def get_contact(self):
         return self.__contact
 
+    def get_cart(self):
+        return self.__cart
+
     def view_cart(self):
         pass
 
