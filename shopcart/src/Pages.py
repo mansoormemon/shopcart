@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 from shopcart.src.Constants import *
 from shopcart.utils import PyUI
 from shopcart.src.Inventory import *
+from shopcart.src.Users import *
 
 
 class StackPage(QWidget):
@@ -123,7 +124,9 @@ class LoginPage(StackPage):
                         credentials = row
                         break
             if credentials is not None:
-                print('Success')
+                customer = Customer(*row)
+                self.shopping_page.update_display(customer)
+                self.parent_stack.setCurrentIndex(self.shopping_page.unique_page_ID)
             else:
                 error_msg_box = QMessageBox()
                 error_msg_box.setText('Invalid credentials!')
@@ -131,8 +134,9 @@ class LoginPage(StackPage):
                 error_msg_box.exec()
         else:
             if username == 'admin' and password == 'admin':
+                user = Admin(username, password)
                 self.reset()
-                self.admin_panel.update_display()
+                self.admin_panel.update_display(user)
                 self.parent_stack.setCurrentIndex(self.admin_panel.unique_page_ID)
             else:
                 error_msg_box = QMessageBox()
@@ -298,6 +302,8 @@ class AdminPanel(StackPage):
         self.table_wgt.setRowCount(32)
         self.table_wgt.setColumnCount(32)
 
+        self.label_status = QLabel()
+
         update_btn = PyUI.PrimaryButton('Update')
         log_out_btn = PyUI.SecondaryButton('Log Out')
 
@@ -306,8 +312,9 @@ class AdminPanel(StackPage):
 
         lyt.addWidget(heading, 0, 0, 1, 2)
         lyt.addWidget(self.table_wgt, 1, 0, 1, 2)
-        lyt.addWidget(log_out_btn, 2, 0)
-        lyt.addWidget(update_btn, 2, 1)
+        lyt.addWidget(self.label_status, 2, 0)
+        lyt.addWidget(log_out_btn, 3, 0)
+        lyt.addWidget(update_btn, 3, 1)
 
         self.setLayout(lyt)
 
@@ -315,13 +322,16 @@ class AdminPanel(StackPage):
         self.parent_stack.setCurrentIndex(self.login_page.unique_page_ID)
         self.inventory.save_to_disk()
 
-    def update_display(self):
+    def update_display(self, user):
+        print(user.get_username(), user.get_password())
         i = 0
         for item in self.inventory:
             self.table_wgt.setItem(i, 0, QTableWidgetItem(str(item.unique_id)))
             self.table_wgt.setItem(i, 1, QTableWidgetItem(str(item.name)))
             self.table_wgt.setItem(i, 2, QTableWidgetItem(str(item.price)))
             i += 1
+
+        self.label_status.setText(f'Currently logged in as \'{user.get_username()}\'.')
 
     def __update_inventory(self):
         def is_empty(cell):
@@ -355,7 +365,14 @@ class ShoppingPage(StackPage):
         heading = QLabel(
             '''
             <h1 style='color: #388f83; font-size: 28px; font-weight: bold; margin-bottom: 8px; text-align:center;'>
-                Admin Panel
+                Shopping Page
             </h1>
             '''
         )
+
+        lyt.addWidget(heading)
+
+        self.setLayout(lyt)
+
+    def update_display(self, customer):
+        print(customer.get_username(), customer.get_password())

@@ -41,6 +41,7 @@ class Shop(QMainWindow):
         self.__bind_login_and_signup_page()
 
         self.__create_admin_panel()
+        self.__create_shopping_page()
 
     @staticmethod
     def __get_configurations():
@@ -140,7 +141,7 @@ class Shop(QMainWindow):
 
     def __create_shopping_page(self):
         self.login_page.shopping_page = ShoppingPage()
-        self.login_page.shopping_page.setObjectName('AdminPanel')
+        self.login_page.shopping_page.setObjectName('ShoppingPage')
 
         self.login_page.shopping_page.login_page = self.login_page
         self.login_page.shopping_page.parent_stack = self.centralWidget()

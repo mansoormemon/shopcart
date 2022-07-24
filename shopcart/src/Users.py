@@ -3,17 +3,23 @@ from shopcart.src.Inventory import *
 
 
 class User:
-    def __init__(self):
-        self.username = '<?>'
-        self.password = '<?>'
+    def __init__(self, username='<?>', password='<?>'):
+        self.__username = username
+        self.__password = password
 
     def change_password(self, new_password):
-        self.password = new_password
+        self.__password = new_password
+
+    def get_username(self):
+        return self.__username
+
+    def get_password(self):
+        return self.__password
 
 
 class Customer(User):
-    def __init__(self, name, address, contact):
-        super().__init__()
+    def __init__(self, username, name, address, contact, password):
+        super().__init__(username, password)
 
         self.__name = name
         self.__address = address
@@ -59,8 +65,8 @@ class Customer(User):
 
 
 class Admin(User):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, username='<?>', password='<?>'):
+        super().__init__(username, password)
         self.admin_privileges = 777
 
     def set_permissions(self, code):
