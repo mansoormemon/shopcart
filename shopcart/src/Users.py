@@ -87,3 +87,6 @@ class Admin(User):
 
     def update_inventory(self, inventory):
         pass
+        
+class Transaction:
+    pass
