@@ -18,8 +18,16 @@ class User:
 
 
 class Customer(User):
-    def __init__(self, username, name, address, contact, password):
+    def __init__(self, username, name, address, contact, password, history_folder_path):
         super().__init__(username, password)
+
+        self.__history_file = f'{history_folder_path}/{username}.csv'
+
+        target_file = Path(history_folder_path)
+        target_file.mkdir(exist_ok=True, parents=True)
+        if not target_file.exists():
+            with open(self.__history_file, 'w') as _:
+                pass
 
         self.__name = name
         self.__address = address
@@ -58,7 +66,12 @@ class Customer(User):
         pass
 
     def checkout(self):
-        pass
+        with open(self.__history_file, 'a') as history_file:
+            csv_writer = csv.writer(history_file, delimiter=';')
+            for order in self.__cart.get_all():
+                csv_writer.writerow([f'{order.get_item_ID()}', f'{order.get_quantity()}'])
+
+        self.__cart.empty()
 
     def show_purchase_history(self):
         pass

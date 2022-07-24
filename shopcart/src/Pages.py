@@ -1,4 +1,5 @@
 import csv
+import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
@@ -133,7 +134,8 @@ class LoginPage(StackPage):
                         credentials = row
                         break
             if credentials is not None:
-                customer = Customer(*row)
+                project_root_path = Path(__file__).parent.parent
+                customer = Customer(*row, f'{project_root_path}/res/records/history/')
                 self.reset()
                 self.shopping_page.update_display(customer)
                 self.parent_stack.setCurrentIndex(self.shopping_page.unique_page_ID)
@@ -525,10 +527,10 @@ class ShoppingPage(StackPage):
             self.item_panel.widget().layout().addWidget(item_card)
 
     def __checkout(self):
-        transaction_modal_dialog = TransactionModalDialog(self.customer)
+        transaction_modal_dialog = TransactionModalDialog(self.customer, self.inventory)
         transaction_modal_dialog.exec()
 
-        self.customer.get_cart().empty()
+        self.customer.checkout()
 
         for child in self.cart_panel_wgt.children():
             if type(child) == CartItemCard:
@@ -546,15 +548,80 @@ class ShoppingPage(StackPage):
                 self.cart_panel_lyt.removeWidget(child)
 
 
-class TransactionModalDialog(QDialog):
-    def __init__(self, customer, *args, **kwargs):
+class TransactionCardItem(QWidget):
+    def __init__(self, id, name, price, quantity, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        lyt = QHBoxLayout()
+
+        lyt.addWidget(QLabel(f'{id}'))
+        lyt.addWidget(QLabel(f'{name}'))
+        lyt.addWidget(QLabel(f'{price}'))
+        lyt.addWidget(QLabel(f'{quantity}'))
+
+        self.setLayout(lyt)
+
+
+class TransactionModalDialog(QDialog):
+    def __init__(self, customer, inventory, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setFixedWidth(512)
+        self.setFixedHeight(480)
+
         lyt = QVBoxLayout()
+
+        heading = QLabel(
+            '''
+            <h1 style='color: #388f83; font-size: 28px; font-weight: bold; margin-bottom: 8px; text-align:center;'>
+                Complete Transaction
+            </h1>
+            '''
+        )
+
+        user_info_cnt = QGroupBox('User Info')
+
+        user_info_cnt_lyt = QVBoxLayout()
+        user_info_cnt_lyt.addWidget(QLabel(f'Purchased at: {datetime.datetime.now().strftime("%H:%M %d/%b/%Y")}'))
+        user_info_cnt_lyt.addWidget(QLabel(f'Customer Name: {customer.get_name()}'))
+
+        user_info_cnt.setLayout(user_info_cnt_lyt)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        wgt = QWidget()
+        wgt_lyt = QVBoxLayout()
+        wgt_lyt.setAlignment(Qt.AlignmentFlag.AlignTop)
+        lbl = QLabel('<b>Purchase Memo</b>')
+        lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        wgt_lyt.addWidget(lbl)
+        header = Header('ID', 'Product', 'Price', 'Quantity')
+        wgt_lyt.addWidget(header)
+
+        wgt.setLayout(wgt_lyt)
+        scroll_area.setWidget(wgt)
+
+        for order in customer.get_cart().get_all():
+            item = inventory.get_item(order.get_item_ID())
+            item_card = TransactionCardItem(order.get_ID(), item.name, item.price, order.get_quantity())
+            wgt_lyt.addWidget(item_card)
+
+        total = customer.get_cart().calculate_total(inventory)
+
+        total_label = QLabel(
+            f'''
+                <span style='font-size: 48px;'>Total: {total}</span>
+            '''
+        )
 
         proceed_btn = PyUI.PrimaryButton('Proceed Transaction')
         proceed_btn.clicked.connect(lambda: self.close())
 
+        lyt.addWidget(heading)
+        lyt.addWidget(user_info_cnt)
+        lyt.addWidget(scroll_area)
+        lyt.addWidget(total_label)
         lyt.addWidget(proceed_btn)
 
         self.setLayout(lyt)
