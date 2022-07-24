@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
@@ -10,7 +11,15 @@ from PyQt6.QtWidgets import (
     QTableWidget,
     QSizePolicy,
     QTreeView,
-    QSpacerItem, QTableWidgetItem
+    QSpacerItem,
+    QTableWidgetItem,
+    QGroupBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QScrollArea,
+    QDialog,
+    QSpinBox,
+    QScrollBar
 )
 
 from shopcart.src.Constants import *
@@ -125,6 +134,7 @@ class LoginPage(StackPage):
                         break
             if credentials is not None:
                 customer = Customer(*row)
+                self.reset()
                 self.shopping_page.update_display(customer)
                 self.parent_stack.setCurrentIndex(self.shopping_page.unique_page_ID)
             else:
@@ -351,6 +361,78 @@ class AdminPanel(StackPage):
         self.inventory.update(stock)
 
 
+class ShoppingItemCard(QWidget):
+    def __init__(self, item: Item, cart: Cart, cart_panel_lyt, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        lyt = QHBoxLayout()
+
+        self.item_ID = item.unique_id
+        self.cart = cart
+        self.cart_panel_lyt = cart_panel_lyt
+
+        lyt.addWidget(QLabel(f'{item.unique_id}'), stretch=1)
+        lyt.addWidget(QLabel(f'{item.name}'), stretch=1)
+        lyt.addWidget(QLabel(f'Rs. {item.price}'), stretch=1)
+
+        self.quantity_box = QSpinBox()
+        self.quantity_box.setMinimum(1)
+        lyt.addWidget(self.quantity_box, stretch=1)
+
+        self.add_to_cart_btn = PyUI.WarningButton('Add to Cart')
+        lyt.addWidget(self.add_to_cart_btn, stretch=1)
+
+        self.add_to_cart_btn.clicked.connect(self.__add_item_to_cart)
+
+        self.setLayout(lyt)
+
+    def __add_item_to_cart(self):
+        order = Order(Order.count, self.item_ID, self.quantity_box.value())
+
+        self.cart.add_order(order)
+
+        cart_item = CartItemCard(order, self.cart)
+        self.cart_panel_lyt.addWidget(cart_item)
+
+        self.quantity_box.setValue(1)
+
+
+class CartItemCard(QWidget):
+    def __init__(self, order: Order, cart: Cart, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        lyt = QHBoxLayout()
+
+        self.order = order
+        self.cart = cart
+
+        lyt.addWidget(QLabel(f'{order.get_ID()}'), stretch=1)
+        lyt.addWidget(QLabel(f'{order.get_item_ID()}'), stretch=1)
+        lyt.addWidget(QLabel(f'{order.get_quantity()}'), stretch=1)
+
+        self.remove_from_cart_btn = PyUI.ErrorButton('X')
+        lyt.addWidget(self.remove_from_cart_btn, stretch=1)
+
+        self.remove_from_cart_btn.clicked.connect(self.__remove_item_from_cart)
+
+        self.setLayout(lyt)
+
+    def __remove_item_from_cart(self):
+        pass
+
+
+class Header(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+        lyt = QHBoxLayout()
+
+        for heading in args:
+            lyt.addWidget(QLabel(f'<h4>{heading}</h4>'))
+
+        self.setLayout(lyt)
+
+
 class ShoppingPage(StackPage):
     def __init__(self, *args, **kwargs):
         super().__init__(Page.ShoppingPage.value, *args, **kwargs)
@@ -370,9 +452,82 @@ class ShoppingPage(StackPage):
             '''
         )
 
-        lyt.addWidget(heading)
+        user_info_cnt = QGroupBox('User Info')
+
+        user_info_cnt_lyt = QVBoxLayout()
+        self.cname = QLabel()
+        self.caddr = QLabel()
+        self.ccont = QLabel()
+        user_info_cnt_lyt.addWidget(self.cname)
+        user_info_cnt_lyt.addWidget(self.caddr)
+        user_info_cnt_lyt.addWidget(self.ccont)
+
+        user_info_cnt.setLayout(user_info_cnt_lyt)
+
+        sub_wgt = QGroupBox('Available Items')
+
+        sub_wgt_lyt = QHBoxLayout()
+
+        self.item_panel = QScrollArea()
+        self.item_panel.setWidgetResizable(True)
+        self.item_panel_wgt = QWidget()
+        self.item_panel.setWidget(self.item_panel_wgt)
+
+        self.item_panel_lyt = QVBoxLayout()
+        self.item_panel_lyt.addWidget(Header('ID', 'Product', 'Price', 'Quantity', ''))
+        self.item_panel_wgt.setLayout(self.item_panel_lyt)
+
+        self.cart_panel = QScrollArea()
+        self.cart_panel.setWidgetResizable(True)
+        self.cart_panel_wgt = QWidget()
+        self.cart_panel.setWidget(self.cart_panel_wgt)
+
+        self.cart_panel_lyt = QVBoxLayout()
+        self.cart_panel_lyt.addWidget(Header('Order', 'Item', 'Quantity', ''))
+        self.cart_panel_lyt.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.cart_panel_wgt.setLayout(self.cart_panel_lyt)
+
+        sub_wgt_lyt.addWidget(self.item_panel, stretch=2)
+        sub_wgt_lyt.addWidget(self.cart_panel, stretch=1)
+
+        sub_wgt.setLayout(sub_wgt_lyt)
+
+        self.label_status = QLabel()
+
+        checkout_btn = PyUI.SuccessButton('Checkout')
+        log_out_btn = PyUI.SecondaryButton('Log Out')
+
+        checkout_btn.clicked.connect(self.__checkout)
+        log_out_btn.clicked.connect(self.__logout)
+
+        lyt.addWidget(heading, 0, 0, 1, 2)
+        lyt.addWidget(user_info_cnt, 1, 0, 1, 2)
+        lyt.addWidget(sub_wgt, 2, 0, 1, 2)
+        lyt.addWidget(self.label_status, 3, 0, 1, 2)
+        lyt.addWidget(log_out_btn, 4, 0, 1, 1)
+        lyt.addWidget(checkout_btn, 4, 1, 1, 1)
 
         self.setLayout(lyt)
 
     def update_display(self, customer):
-        print(customer.get_username(), customer.get_password())
+        self.customer = customer
+
+        self.cname.setText(f'<b>Name:</b> {customer.get_name()}')
+        self.caddr.setText(f'<b>Address:</b> {customer.get_address()}')
+        self.ccont.setText(f'<b>Contact:</b> {customer.get_contact()}')
+
+        self.label_status.setText(f'Currently logged in as \'{customer.get_username()}\'.')
+
+        for item in self.inventory:
+            item_card = ShoppingItemCard(item, customer.get_cart(), self.cart_panel.widget().layout())
+            self.item_panel.widget().layout().addWidget(item_card)
+
+    def __checkout(self):
+        print(self.customer.get_cart().calculate_total(self.inventory))
+
+    def __logout(self):
+        self.parent_stack.setCurrentIndex(self.login_page.unique_page_ID)
+
+        for child in self.item_panel.children():
+            if isinstance(child, ShoppingItemCard):
+                self.item_panel.widget().layout().removeWidget(child)

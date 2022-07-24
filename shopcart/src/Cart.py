@@ -2,7 +2,10 @@ from shopcart.src.Inventory import *
 
 
 class Order:
+    count = 0
+
     def __init__(self, ID, item_ID, quantity):
+        Order.count += 1
         self.__ID = ID
         self.__item_ID = item_ID
         self.__quantity = quantity
@@ -19,12 +22,15 @@ class Order:
     def calculate_total(self, inventory: Inventory):
         if inventory.has_item(self.__item_ID):
             item = inventory.get_item(self.__item_ID)
-            return self.__quantity * item.price
+            return float(self.__quantity) * float(item.price)
 
 
 class Cart:
     def __init__(self):
         self.__orders = []
+
+    def __len__(self):
+        return len(self.__orders)
 
     def get_all(self):
         return self.__orders
