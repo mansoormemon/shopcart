@@ -40,7 +40,7 @@ class Inventory:
     def remove_item(self, target_id):
         for item in self.__stock:
             if item.unique_id == target_id:
-                del item
+                self.__stock.remove(item)
 
     def update(self, stock):
         self.__stock = stock

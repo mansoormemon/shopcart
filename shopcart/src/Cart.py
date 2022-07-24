@@ -45,11 +45,14 @@ class Cart:
 
     def remove_order(self, order_ID):
         for order in self.__orders:
-            if order.get_ID == order_ID:
-                del order
+            if order.get_ID() == order_ID:
+                self.__orders.remove(order)
 
     def calculate_total(self, inventory: Inventory):
         acc = 0
         for order in self.__orders:
             acc += order.calculate_total(inventory)
         return acc
+
+    def empty(self):
+        self.__orders = []

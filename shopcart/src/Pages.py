@@ -391,20 +391,21 @@ class ShoppingItemCard(QWidget):
 
         self.cart.add_order(order)
 
-        cart_item = CartItemCard(order, self.cart)
+        cart_item = CartItemCard(order, self.cart, self.cart_panel_lyt)
         self.cart_panel_lyt.addWidget(cart_item)
 
         self.quantity_box.setValue(1)
 
 
 class CartItemCard(QWidget):
-    def __init__(self, order: Order, cart: Cart, *args, **kwargs):
+    def __init__(self, order: Order, cart: Cart, cart_panel_lyt, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         lyt = QHBoxLayout()
 
         self.order = order
         self.cart = cart
+        self.cart_panel_lyt = cart_panel_lyt
 
         lyt.addWidget(QLabel(f'{order.get_ID()}'), stretch=1)
         lyt.addWidget(QLabel(f'{order.get_item_ID()}'), stretch=1)
@@ -418,7 +419,8 @@ class CartItemCard(QWidget):
         self.setLayout(lyt)
 
     def __remove_item_from_cart(self):
-        pass
+        self.cart.remove_order(self.order.get_ID())
+        self.cart_panel_lyt.removeWidget(self)
 
 
 class Header(QWidget):
@@ -523,11 +525,36 @@ class ShoppingPage(StackPage):
             self.item_panel.widget().layout().addWidget(item_card)
 
     def __checkout(self):
-        print(self.customer.get_cart().calculate_total(self.inventory))
+        transaction_modal_dialog = TransactionModalDialog(self.customer)
+        transaction_modal_dialog.exec()
+
+        self.customer.get_cart().empty()
+
+        for child in self.cart_panel_wgt.children():
+            if type(child) == CartItemCard:
+                self.cart_panel_lyt.removeWidget(child)
 
     def __logout(self):
         self.parent_stack.setCurrentIndex(self.login_page.unique_page_ID)
 
-        for child in self.item_panel.children():
-            if isinstance(child, ShoppingItemCard):
-                self.item_panel.widget().layout().removeWidget(child)
+        for child in self.item_panel_wgt.children():
+            if type(child) == ShoppingItemCard:
+                self.item_panel_lyt.removeWidget(child)
+
+        for child in self.cart_panel_wgt.children():
+            if type(child) == CartItemCard:
+                self.cart_panel_lyt.removeWidget(child)
+
+
+class TransactionModalDialog(QDialog):
+    def __init__(self, customer, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        lyt = QVBoxLayout()
+
+        proceed_btn = PyUI.PrimaryButton('Proceed Transaction')
+        proceed_btn.clicked.connect(lambda: self.close())
+
+        lyt.addWidget(proceed_btn)
+
+        self.setLayout(lyt)
